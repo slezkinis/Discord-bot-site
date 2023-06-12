@@ -1,2 +1,3 @@
 Django
-discord.pu
+discord.py
+mcstatus
