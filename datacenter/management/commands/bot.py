@@ -71,7 +71,7 @@ def bot1():
         await loop.run_in_executor(None, check)
         guild = bot.get_guild(int(SERVER_ID))
         user = guild.get_member(member.id)
-        user_role = guild.get_role(USER_ID)
+        user_role = guild.get_role(int(USER_ID))
         await user.add_roles(user_role)
 
     @bot.command()
@@ -83,6 +83,7 @@ def bot1():
 !carma - Узнать свою карму
 !thanks <user> - Сказать спасибо участнику и повысить его карму
 !server - информауия о сервере
+!moder <text> - сообщение админам о багах и т.д
 '''
             await ctx.reply(text)
         elif mes == 'moder':
@@ -102,6 +103,7 @@ def bot1():
 !carma - Узнать свою карму
 !thanks <user> - Сказать спасибо участнику и повысить его карму
 !server - информауия о сервере
+!moder <text> - сообщение админам о багах и т.д
 
 
 ***Moderator only***
@@ -135,7 +137,10 @@ def bot1():
                 guild = bot.get_guild(int(SERVER_ID)) # получаем объект сервера*
                 role = guild.get_role(int(MUTE_ROLE)) # получаем объект роли*
                 await user.add_roles(role, reason=reason)
-                await user.edit(mute=True)
+                try:
+                    await user.edit(mute=True)
+                except:
+                    a = 1
                 await ctx.reply(f'{user.name} был заткнут {author.name} на сервере по причине: {reason}')
                 await user.send(f'Тебя замутил {author.name} на сервере "{guild.name}" по причине: {reason}')
             else:
@@ -155,7 +160,10 @@ def bot1():
                 user_roles = [i.id for i in user.roles]
                 if int(MUTE_ROLE) in user_roles:
                     await user.remove_roles(role)
-                    await user.edit(mute=False)
+                    try:
+                        await user.edit(mute=False)
+                    except:
+                        a = 1
                     await ctx.reply(f'{user.name} был отткнут {author.name} на сервере:) Поздравляю, {user.name}:)')
                     await user.send(f'Поздравляю! Ты можешь говорить на сервере {guild.name}! Но больше не шали:)')
                 else:
@@ -247,27 +255,29 @@ def bot1():
         server = mcstatus.JavaServer.lookup(SERVER_ADDRESS)
         status = server.status()
         count_players = "Количество игроков: {}/{}".format(status.players.online, status.players.max)
-        users = [i.name for i in status.players.sample]
+        users = []
+        if status.players.sample is not None:
+            users = [i.name for i in status.players.sample]
+        # query = server.query()
+        # users = query.players.names
         all_players = f'Игроки на сервере: {", ".join(users)}'
         await ctx.reply(f'Вот текущее положение сервера:\nВерсия: {status.version.name}\n{count_players}\n{all_players}')
 
 
     @bot.command()
-    async def tell_moder(ctx, message='', user: discord.Member = None):
+    async def moder(ctx, message=''):
         author = ctx.message.author
         if message == '':
             await ctx.reply('Ты не написал, что нужно передать!')
+            return
         else:
-            if user is None:
-                moders = []
-                guild = bot.get_guild(int(SERVER_ID))
-                role = guild.get_role(ADMIN_ROLE)
-                moders = role.members
-                print(moders)
-            else:
-                user_roles = [i.id for i in user.roles]
-                if ADMIN_ROLE in user_roles:
-                    await user.send(f'{')
+            moders = []
+            guild = bot.get_guild(int(SERVER_ID))
+            role = guild.get_role(int(ADMIN_ROLE))
+            moders = role.members
+            for i in moders:
+                await i.send(f'{author.name} сообщает:\n{message}')
+        await ctx.reply('Передал админам твоё сообщение. Но учти, если это спам, то админы тебя найдут и накажут:)')
 
 
     @bot.command()
